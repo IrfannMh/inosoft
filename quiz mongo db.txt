@@ -1,0 +1,63 @@
+query
+----------------------------------------
+How many companies in the sample_training.companies collection have the same permalink as their twitter_username?
+
+comparison 2 field (field twitter_username and field permalink)
+{ $expr : { $eq : [ '$twitter_username', '$permalink' ] } }
+
+
+---------------------------------------
+Which of the following queries will return all listings that have "Free parking on premises", "Air conditioning", and "Wifi" as part of their amenities, and have at least 2 bedrooms in the sample_airbnb.listingsAndReviews collection?
+
+{ 'amenities' : { $all : [ 'Free parking on premises', 'Air conditioning', 'Wifi' ] }, 'bedrooms' : { $gte : 2 } }
+
+-------------------------------------
+How many companies in the sample_training.companies collection have offices in the city of Seattle?
+
+{ 'offices.city' : 'Seattle' }.count{}
+------------------------------------
+How many trips in the sample_training.trips collection started at stations that are to the west of the -74 longitude coordinate?
+
+Longitude decreases in values as you move west.
+
+Note: We always list the longitude first and then latitude in the coordinate pairs; i.e.
+
+ 
+
+<field_name>: [<longitude>, <latitude>]
+
+
+db = db.getSiblingDB("sample_training");
+db.getCollection("trips").find(
+    {
+        "start station location.coordinates.0" : {
+            "$lt" : -74.0
+        }
+    }
+).count();
+
+
+
+
+
+----------------------------
+Use sample_airbnb.listingsAndReviews. Project only the address field value for each document, then group all documents into one document per address.country value, and count one for each document in each group.
+
+db = db.getSiblingDB("sample_airbnb");
+db.getCollection("listingsAndReviews").aggregate(
+    [
+        {
+            "$project" : {
+                "address" : 1.0
+            }
+        }, 
+        {
+            "$group" : {
+                "_id" : "$address.country",
+                "count" : {
+                    "$sum" : 1.0
+                }
+            }
+        }
+    ]
+);
